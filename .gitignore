@@ -1,0 +1,15 @@
+# 後台備份與 Excel 數據清冊檔案 (不發布至網頁庫)
+全局最佳化.gs
+code.gs
+我當校長超勇的.xlsx
+角色分組.xlsx
+逐輪貪婪.gs
+old_index.html
+~$*.xlsx
+
+# AI 助手本地私密組態 (含本機發布憑證，嚴禁上傳)
+AGENTS.md
+
+# 系統臨時檔
+.DS_Store
+Thumbs.db

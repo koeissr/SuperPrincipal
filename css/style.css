@@ -1,0 +1,814 @@
+:root {
+    --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    --wenzu-bg: #fff8ee;
+    --wenzu-border: #f6d4a0;
+    --wenzu-header: #8a5314;
+    --lizu-bg: #f0f7ff;
+    --lizu-border: #b8e1ff;
+    --lizu-header: #125785;
+    --bg-color: #eaeff5;
+}
+
+body {
+    background-color: var(--bg-color);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #1e293b;
+}
+
+.header-banner {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 0.75rem 0;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ℹ️ 標題後操作說明浮動視窗 (Help Popover) */
+.help-popover-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    z-index: 1050;
+}
+
+.help-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.help-popover-wrapper:hover .help-badge {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.help-popover-card {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 380px;
+    background: #ffffff;
+    color: #1e293b;
+    border-radius: 12px;
+    border: 1px solid #dce4ec;
+    box-shadow: 0 12px 36px rgba(15, 23, 42, 0.25);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.help-popover-wrapper:hover .help-popover-card {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.help-popover-header {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 10px 14px;
+    border-bottom: 1px solid #dce4ec;
+}
+
+.help-popover-body {
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.help-item {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.help-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.help-item-title {
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 2px;
+}
+
+.help-item-desc {
+    color: #475569;
+    font-size: 0.78rem;
+}
+
+.help-item-desc code {
+    background: #f1f5f9;
+    color: #0284c7;
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* 頂部右上角正方形工具列 (Square Action Toolbar) */
+.header-square-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 🚀 長方形最顯眼最佳化運算主按鈕 (Hero Action Button) */
+.btn-rect-launch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    padding: 0 18px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+    color: #ffffff;
+    cursor: pointer;
+    text-decoration: none !important;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(29, 78, 216, 0.45);
+    animation: breathingLaunchCTA 2.5s infinite ease-in-out;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-rect-launch i {
+    font-size: 1.15rem;
+    transition: transform 0.2s ease;
+}
+
+.btn-rect-launch:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(29, 78, 216, 0.65);
+    background: linear-gradient(135deg, #60a5fa 0%, #2563eb 50%, #1d4ed8 100%);
+    color: #ffffff;
+}
+
+.btn-rect-launch:hover i {
+    transform: translateX(2px) translateY(-2px);
+}
+
+@keyframes breathingLaunchCTA {
+    0% {
+        box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.6), 0 4px 14px rgba(29, 78, 216, 0.45);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 7px rgba(96, 165, 250, 0), 0 6px 18px rgba(29, 78, 216, 0.55);
+        transform: scale(1.02);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(96, 165, 250, 0), 0 4px 14px rgba(29, 78, 216, 0.45);
+        transform: scale(1);
+    }
+}
+
+.btn-square-tool {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 44px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    text-decoration: none !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.btn-square-tool i {
+    font-size: 1.15rem;
+    margin-bottom: 3px;
+}
+
+.btn-square-tool:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    color: #ffffff;
+}
+
+/* 🧹 重設按鈕樣式 (高亮珊瑚紅) */
+.btn-square-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border-color: #f87171;
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(220, 38, 38, 0.4);
+}
+.btn-square-danger:hover {
+    background: linear-gradient(135deg, #f87171 0%, #b91c1c 100%);
+    border-color: #fca5a5;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.6);
+}
+
+/* 📥 備份按鈕樣式 (高亮翠綠) */
+.btn-square-success {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border-color: #4ade80;
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(22, 163, 74, 0.4);
+}
+.btn-square-success:hover {
+    background: linear-gradient(135deg, #4ade80 0%, #15803d 100%);
+    border-color: #86efac;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.6);
+}
+
+/* 📤 匯入按鈕樣式 (高亮青藍) */
+.btn-square-primary {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    border-color: #38bdf8;
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(2, 132, 199, 0.4);
+}
+.btn-square-primary:hover {
+    background: linear-gradient(135deg, #38bdf8 0%, #0369a1 100%);
+    border-color: #7dd3fc;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.6);
+}
+
+/* 📑 戰報匯出按鈕樣式 (高亮琥珀黃) */
+.btn-square-warning {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    border-color: #fcd34d;
+    color: #78350f;
+    box-shadow: 0 3px 10px rgba(245, 158, 11, 0.45);
+}
+.btn-square-warning:hover {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border-color: #fde68a;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.65);
+}
+
+/* 💬 意見回饋按鈕樣式 (高反差純白耀眼卡片) */
+.btn-square-feedback {
+    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+    border-color: #ffffff;
+    color: #1e3a8a;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+.btn-square-feedback:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-color: #ffffff;
+    color: #1d4ed8;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.card {
+    border: 1px solid #dce4ec;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+    margin-bottom: 1rem;
+    background-color: #ffffff;
+}
+
+.card-header {
+    background-color: #ffffff;
+    border-bottom: 1.5px solid #edf2f7;
+    font-weight: 700;
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+    padding: 0.75rem 1rem;
+}
+
+/* 頂部全寬度橫向設定與快捷列 (Top Config Bar) */
+.top-config-bar {
+    background: #ffffff;
+    border: 1px solid #dce4ec;
+    border-radius: 12px;
+    padding: 12px 18px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.top-config-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.top-config-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* 角色圖鑑頁籤 (Tabs) 視覺重構 */
+.catalog-tabs-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.catalog-tab-btn {
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.catalog-tab-btn:hover {
+    background: #e2e8f0;
+}
+
+.catalog-tab-btn.active {
+    background: #1e293b;
+    color: #ffffff;
+    border-color: #0f172a;
+}
+
+/* 角色圖鑑全選按鈕組 (Select All Buttons) */
+.catalog-action-btn {
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.catalog-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.catalog-action-btn.btn-select-wenzu {
+    border-color: #f59e0b;
+    color: #b45309;
+    background-color: #fffbeb;
+}
+.catalog-action-btn.btn-select-wenzu:hover,
+.catalog-action-btn.btn-select-wenzu.all-selected {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #ffffff;
+    border-color: #d97706;
+}
+
+.catalog-action-btn.btn-select-lizu {
+    border-color: #0284c7;
+    color: #0369a1;
+    background-color: #f0f9ff;
+}
+.catalog-action-btn.btn-select-lizu:hover,
+.catalog-action-btn.btn-select-lizu.all-selected {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    border-color: #075985;
+}
+
+/* 角色高辨識度視覺標籤 (Gender & Selection Enhanced Badges) */
+.char-badge {
+    cursor: pointer;
+    margin: 4px 3px;
+    padding: 5px 12px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    border-radius: 20px;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* 未選中：男生 (清爽淡藍白底 + 湛藍邊框 + 湛藍性別標籤) */
+.char-badge.gender-m {
+    background-color: #f0f7ff;
+    border: 1.5px solid #93c5fd;
+    color: #1e40af;
+}
+.char-badge.gender-m .gender-pill {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+/* 未選中：女生 (甜美櫻花粉白底 + 玫瑰粉邊框 + 玫瑰粉性別標籤) */
+.char-badge.gender-f {
+    background-color: #fff1f2;
+    border: 1.5px solid #fecdd3;
+    color: #be123c;
+}
+.char-badge.gender-f .gender-pill {
+    background-color: #ffe4e6;
+    color: #e11d48;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.char-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+}
+
+/* 🌟 已選中登場：男生 (皇家寶石藍底 + 純白文字 + 打勾角標) */
+.char-badge.gender-m.selected {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    border-color: #1e40af !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 10px rgba(37, 99, 235, 0.45);
+    opacity: 1 !important;
+}
+.char-badge.gender-m.selected .gender-pill {
+    background-color: rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+}
+
+/* 🌟 已選中登場：女生 (鮮艷亮麗玫瑰粉紅底 + 純白文字 + 打勾角標) */
+.char-badge.gender-f.selected {
+    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%) !important;
+    border-color: #be123c !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 10px rgba(225, 29, 72, 0.45);
+    opacity: 1 !important;
+}
+.char-badge.gender-f.selected .gender-pill {
+    background-color: rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+}
+
+/* 登場勾選標記 */
+.char-badge-check {
+    font-size: 0.78rem;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 2px;
+}
+
+/* 浮動式角色圖鑑選單抽屜 (Bottom Sheet Drawer) */
+.catalog-drawer-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 1040;
+    transition: opacity 0.3s ease;
+}
+
+.catalog-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 920px;
+    background: #ffffff;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.22);
+    z-index: 1050;
+    animation: slideUpDrawer 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 75vh;
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes slideUpDrawer {
+    from {
+        transform: translate(-50%, 100%);
+    }
+    to {
+        transform: translate(-50%, 0);
+    }
+}
+
+.catalog-drawer-body {
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+/* 表格微調與 touch 支援 */
+.table-vcenter td,
+.table-vcenter th {
+    vertical-align: middle;
+    padding: 6px 3px;
+}
+
+.table-vcenter .input-group {
+    flex-wrap: nowrap !important;
+}
+
+.btn-inc-dec {
+    width: 24px;
+    height: 26px;
+    padding: 0;
+    line-height: 24px;
+    text-align: center;
+    font-weight: bold;
+    user-select: none;
+    font-size: 0.8rem;
+}
+
+/* 隱藏原生 number input 的上下微調箭頭 (Spinners)，解決數字偏左未置中問題 */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.col-char-name {
+    width: 6.2em !important;
+    max-width: 6.2em !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-weight: 700;
+}
+
+.btn-xs {
+    font-size: 0.75rem !important;
+    padding: 1px 6px !important;
+    border-radius: 4px !important;
+}
+
+.num-input-score {
+    width: 72px !important;
+    text-align: center !important;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 2px 2px !important;
+    transition: all 0.15s ease;
+}
+
+.num-input-score:focus {
+    background-color: #fffde7 !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25) !important;
+    outline: none !important;
+    z-index: 5;
+    position: relative;
+}
+
+.num-input-count {
+    width: 34px !important;
+    text-align: center !important;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 2px 2px !important;
+}
+
+.handle {
+    cursor: grab;
+    color: #aaa;
+}
+
+.handle:active {
+    cursor: grabbing;
+}
+
+/* 呼吸燈按鈕視覺強化 (Breathing Pulse Effects) */
+.btn-pulse-primary {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 20px !important;
+    padding: 5px 14px !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    animation: breathingGlow 2.5s infinite ease-in-out;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-pulse-primary:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5) !important;
+}
+
+@keyframes breathingGlow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.6);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+        transform: scale(1.03);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+        transform: scale(1);
+    }
+}
+
+/* 🚀 開始最佳化運算 - 主懸浮按鈕呼吸效果 */
+.btn-pulse-launch {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(29, 78, 216, 0.4);
+    animation: breathingLaunch 2.2s infinite ease-in-out;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-pulse-launch:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(29, 78, 216, 0.6) !important;
+}
+
+@keyframes breathingLaunch {
+    0% {
+        box-shadow: 0 0 0 0 rgba(29, 78, 216, 0.6);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(29, 78, 216, 0);
+        transform: scale(1.02);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(29, 78, 216, 0);
+        transform: scale(1);
+    }
+}
+
+/* 左右兩欄 Flex 等高佈局與懸浮容器 */
+.left-panel-column {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.right-panel-column {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.right-panel-modes-row {
+    flex: 1 1 auto;
+    display: flex;
+}
+
+.strategy-mode-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.sticky-calc-btn-wrapper {
+    position: sticky;
+    bottom: 0;
+    z-index: 90;
+    background-color: var(--bg-color);
+    padding: 10px 0 6px 0;
+    margin-top: auto;
+    box-shadow: 0 -8px 18px rgba(244, 246, 249, 0.95), 0 -3px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* 運算進行中 Overlay */
+#calcOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.88);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    backdrop-filter: blur(2px);
+}
+
+.spinner-hourglass {
+    font-size: 2.5rem;
+    color: #2a5298;
+    animation: spinHourglass 2s infinite linear;
+}
+
+@keyframes spinHourglass {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.strategy-mode-header {
+    padding: 12px;
+    border-bottom: 2px solid #edf2f7;
+}
+
+.strategy-mode-header.mode1 {
+    background-color: #f0f5ff;
+    border-bottom-color: #d6e4ff;
+}
+
+.strategy-mode-header.mode2 {
+    background-color: #fff9f0;
+    border-bottom-color: #feebc8;
+}
+
+.round-card {
+    background: #f8fafc;
+    border-left: 4px solid #3182ce;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+
+.round-card.cleared {
+    border-left-color: #38a169;
+}
+
+.round-card.failed {
+    border-left-color: #e53e3e;
+    background: #fff5f5;
+}
+
+.char-tag-pill {
+    display: inline-block;
+    background: #edf2f7;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    margin: 2px;
+    font-weight: 500;
+}
+
+/* 頁尾版權宣告區塊 */
+.app-footer {
+    background-color: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    padding: 1.5rem 0;
+    margin-top: 2rem;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.app-footer a {
+    color: #2a5298;
+    text-decoration: none;
+}
+
+.app-footer a:hover {
+    text-decoration: underline;
+}

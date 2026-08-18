@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《我當校長超勇的-古鎮居民樓》最低溢出交流策略試算工具</title>
+
+    <!-- UI 樣式庫 & 圖示 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 自訂主樣式表 -->
+    <link rel="stylesheet" href="css/style.css?v=2.0.2">
+
+    <!-- SortableJS (拖曳排序) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <!-- SheetJS (xlsx-js-style 支援顏色、底色、邊框與欄寬匯出) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+</head>
+
+<body>
+
+    <!-- 標頭 Banner (包含右上角正方形功能工具列) -->
+    <header class="header-banner">
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <h4 class="m-0 fw-bold"><i class="fa-solid fa-graduation-cap me-2"></i>《我當校長超勇的-古鎮居民樓》最低溢出交流策略試算工具</h4>
+                    
+                    <!-- ℹ️ 操作說明 Hover 浮動提示視窗 -->
+                    <div class="help-popover-wrapper">
+                        <span class="help-badge">
+                            <i class="fa-solid fa-circle-question me-1"></i>操作說明
+                        </span>
+                        <div class="help-popover-card shadow-lg">
+                            <div class="help-popover-header">
+                                <i class="fa-solid fa-lightbulb text-warning me-2"></i>《古鎮居民樓交流助手》新手與使用指南
+                            </div>
+                            <div class="help-popover-body">
+                                <div class="help-item">
+                                    <div class="help-item-title"><i class="fa-solid fa-play text-primary me-1"></i>1. 預設展示與重設</div>
+                                    <div class="help-item-desc">網頁開啟時已為您載入 Demo 範例並自動試算。您可以隨時點擊右上角 <b>[ 🧹 重設 ]</b> 清空，或點擊 <b>[ 📤 匯入 ]</b> 替換為您的專屬名冊。</div>
+                                </div>
+                                <div class="help-item">
+                                    <div class="help-item-title"><i class="fa-solid fa-file-arrow-down text-success me-1"></i>2. 個人資料隨手備份</div>
+                                    <div class="help-item-desc">調整好您的登場角色、學科成績與次數後，建議點擊右上角 <b>[ 📥 備份 ]</b> 下載 <code>.xlsx</code> 檔案妥善保存。</div>
+                                </div>
+                                <div class="help-item">
+                                    <div class="help-item-title"><i class="fa-solid fa-shield-halved text-danger me-1"></i>3. 無痕隱私與無資料儲存</div>
+                                    <div class="help-item-desc">本工具採用<b>純本機運算</b>，不會在雲端或瀏覽器儲存您的任何遊戲資料。下次開啟時，只需點擊 <b>[ 📤 匯入 ]</b> 上傳備份檔即可秒速還原！</div>
+                                </div>
+                                <div class="help-item">
+                                    <div class="help-item-title"><i class="fa-solid fa-wand-magic-sparkles text-info me-1"></i>4. 快捷操作小技巧</div>
+                                    <div class="help-item-desc">表格中按 <code>Tab</code> 鍵可垂直快速跳至下一位角色；<code>+/-</code> 支援長按連續加速；點擊 <b>[ 🪄 集體微調成績/次數 ]</b> 可批次加減戰力與次數。</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 最右上角：長方形運算按鈕 + 正方形功能工具列 -->
+                <div class="header-square-toolbar">
+                    <!-- 🚀 長方形最顯眼最佳化運算主按鈕 -->
+                    <button class="btn-rect-launch" onclick="startOptimizationFlow()" title="🚀 立即執行雙模式最佳化運算">
+                        <i class="fa-solid fa-rocket me-2"></i>開始最佳化運算
+                    </button>
+
+                    <div class="vr bg-white opacity-25 mx-1" style="height: 32px;"></div>
+
+                    <!-- 1. 清空重設 -->
+                    <button class="btn-square-tool btn-square-danger" onclick="resetSelectedCharacters()"
+                        title="🧹 清空登場清單與設定">
+                        <i class="fa-solid fa-broom"></i>
+                        <span>重設</span>
+                    </button>
+                    <!-- 2. 下載備份 (.xlsx) -->
+                    <button class="btn-square-tool btn-square-success" onclick="exportCharExcelTemplate()"
+                        title="📥 下載登場角色清冊備份 (.xlsx)">
+                        <i class="fa-solid fa-file-arrow-down"></i>
+                        <span>備份</span>
+                    </button>
+                    <!-- 3. 匯入清冊 (.xlsx) -->
+                    <button class="btn-square-tool btn-square-primary"
+                        onclick="document.getElementById('importExcelInput').click()" title="📤 匯入已備份之角色清冊 (.xlsx)">
+                        <i class="fa-solid fa-file-arrow-up"></i>
+                        <span>匯入</span>
+                    </button>
+                    <!-- 4. 匯出雙模式戰報 (.xlsx) -->
+                    <button class="btn-square-tool btn-square-warning" onclick="exportStrategyExcel()"
+                        title="📑 匯出雙模式交流對比結果 (.xlsx)">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>戰報</span>
+                    </button>
+                    <!-- 5. 意見與問題回饋 -->
+                    <a href="https://forms.gle/3FFxCqvpW2iHEKGM6" target="_blank"
+                        class="btn-square-tool btn-square-feedback" title="💬 填寫意見與問題回饋問卷">
+                        <i class="fa-solid fa-comment-dots"></i>
+                        <span>回饋</span>
+                    </a>
+
+                    <!-- 隱藏的 Excel 檔案上傳 input -->
+                    <input type="file" id="importExcelInput" style="display:none" accept=".xlsx, .xls"
+                        onchange="importCharExcel(event)">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 頂部一橫列全域設定 (Top Parameter Bar) -->
+    <div class="container-fluid px-4 mb-3">
+        <div class="top-config-bar">
+            <!-- 居民 BOSS 設定組 -->
+            <div class="top-config-group flex-grow-1">
+                <span class="fw-bold fs-7 text-primary"><i class="fa-solid fa-ghost me-1"></i>古鎮居民設定：</span>
+
+                <!-- 親密度 -->
+                <div class="top-config-item">
+                    <label class="fs-8 fw-bold text-muted mb-0">親密度：</label>
+                    <select id="intimacySelect" class="form-select form-select-sm w-auto"
+                        onchange="handleIntimacyChange()">
+                        <!-- 0% ~ 100% -->
+                    </select>
+                </div>
+
+                <!-- 第 1 輪初始精力 -->
+                <div class="top-config-item">
+                    <label class="fs-8 fw-bold text-muted mb-0">第1輪精力：</label>
+                    <div class="input-group input-group-sm w-auto">
+                        <button class="btn btn-outline-secondary btn-inc-dec"
+                            onclick="adjustValue('bossBaseHp', -100)">-</button>
+                        <input type="number" id="bossBaseHp" class="form-control text-center" style="width: 100px;"
+                            placeholder="180000" step="100">
+                        <button class="btn btn-outline-secondary btn-inc-dec"
+                            onclick="adjustValue('bossBaseHp', 100)">+</button>
+                    </div>
+                </div>
+
+                <!-- 第 2 輪起遞增精力 -->
+                <div class="top-config-item">
+                    <label class="fs-8 fw-bold text-muted mb-0">第2輪起遞增：</label>
+                    <div class="input-group input-group-sm w-auto">
+                        <button class="btn btn-outline-secondary btn-inc-dec"
+                            onclick="adjustValue('bossIncHp', -100)">-</button>
+                        <input type="number" id="bossIncHp" class="form-control text-center" style="width: 85px;"
+                            placeholder="900" step="100">
+                        <button class="btn btn-outline-secondary btn-inc-dec"
+                            onclick="adjustValue('bossIncHp', 100)">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="intimacyAlert" class="alert alert-warning mt-2 p-2 fs-7 mb-0 d-none">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i>親密度已達 100%！該居民不再出現。
+        </div>
+    </div>
+
+    <!-- 主要雙欄內容區塊 -->
+    <div class="container-fluid px-4 pb-4">
+        <div class="row g-3 align-items-stretch">
+
+            <!-- 左側：主工作面板 (登場角色清單全高度最大化 + Sticky運算按鈕) -->
+            <div class="col-lg-4 col-xl-4 left-panel-column">
+
+                <!-- 1. 已登場角色清單 (佔據左欄全高度) -->
+                <div class="card mb-3 flex-grow-1 d-flex flex-column">
+                    <div class="card-header d-flex justify-content-between align-items-center py-2 flex-wrap gap-2">
+                        <span class="fs-6 fw-bold text-primary">
+                            <i class="fa-solid fa-list-check me-2"></i>已登場角色清單 <span id="selectedTitleCount"
+                                class="text-secondary fs-7 fw-normal">(0 人)</span>
+                        </span>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-pulse-primary btn-sm fw-bold py-1 px-3 fs-7"
+                                onclick="openCatalogDrawer()">
+                                <i class="fa-solid fa-user-plus me-1"></i>選取登場同學
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm fw-bold py-1 px-2 fs-7"
+                                onclick="openBatchAdjustModal()" title="集體微調學科成績或登場次數">
+                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i>集體微調成績/次數
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-2 flex-grow-1 d-flex flex-column">
+
+                        <!-- 編輯提示說明 -->
+                        <div class="alert alert-info py-1 px-2 mb-2 fs-8 text-primary border-0"
+                            style="background-color: #f0f7ff;">
+                            <i class="fa-solid fa-info-circle me-1"></i>點擊「選取登場同學」選擇角色，在列表中輸入學科成績 (+/-
+                            可長按加速，Tab鍵垂直快速切換)，拖拉 <i class="fa-solid fa-grip-vertical"></i> 調整順序。<br />
+                            <i class="fa-solid fa-info-circle me-1"></i>您也可以透過「下載備份」保留您的個人化設定，下次再以「匯入清冊」的方式快速導入您的設定。
+                        </div>
+
+                        <div class="table-responsive flex-grow-1" style="max-height: 600px; overflow-y: auto;">
+                            <table class="table table-hover table-vcenter m-0 fs-7">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th style="width: 20px;"></th>
+                                        <th class="col-char-name text-nowrap">角色姓名</th>
+                                        <th class="text-center text-nowrap" style="min-width: 130px;">學科成績</th>
+                                        <th class="text-center text-nowrap" style="width: 85px;">次數</th>
+                                        <th class="text-center text-nowrap" style="width: 36px;">刪除</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="selectedCharTableBody">
+                                    <!-- 動態渲染登場角色 Row -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 右側：雙模式戰報比較面板 (Side-by-Side) -->
+            <div class="col-lg-8 col-xl-8 position-relative right-panel-column">
+
+                <!-- 運算中靜態 Overlay -->
+                <div id="calcOverlay" class="d-none">
+                    <div class="spinner-hourglass mb-3">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">⚡ 背景多線程雙模式算力試算中...</h5>
+                    <p class="text-muted fs-7 mb-3 text-center" style="max-width: 340px;">
+                        Web Worker 獨立背景線程運算中，請稍候。
+                    </p>
+                    <div class="progress w-50" style="height: 10px;">
+                        <div id="calcProgressBar"
+                            class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                            role="progressbar" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- 戰力與 BOSS 資訊統計條 -->
+                <div id="summaryOverviewBox" class="alert alert-dark d-none mb-3 p-3 shadow-sm">
+                    <!-- 動態渲染總戰力數據 -->
+                </div>
+
+                <!-- 雙模式左右併列戰報比較區 -->
+                <div class="row g-3 right-panel-modes-row mb-2">
+
+                    <!-- 左欄：【模式一】 -->
+                    <div class="col-md-6 d-flex flex-column">
+                        <div class="strategy-mode-card shadow-sm">
+                            <div class="strategy-mode-header mode1">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="m-0 fw-bold text-primary">
+                                        <i class="fa-solid fa-trophy me-1 text-primary"></i>【模式一】早期完美0溢出優先
+                                    </h6>
+                                    <span id="mode1Badge" class="badge bg-primary">待運算</span>
+                                </div>
+                                <div class="fs-8 text-muted" style="line-height: 1.35;">
+                                    💡 <b>邏輯特徵</b>：尋求早期輪數儘可能0溢出並儘量打通最高輪數，但可能會有高戰力角色在後期才密集出場導致嚴重溢出浪費的問題。
+                                </div>
+                            </div>
+                            <div class="p-2 flex-grow-1" id="mode1ResultContainer"
+                                style="max-height: 580px; overflow-y: auto;">
+                                <div class="text-center text-muted py-5 fs-7">
+                                    <i class="fa-solid fa-chart-line fa-2x mb-2 d-block text-secondary"></i>
+                                    尚未執行運算，請點擊右上角「🚀 開始最佳化運算」。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右欄：【模式二】 -->
+                    <div class="col-md-6 d-flex flex-column">
+                        <div class="strategy-mode-card shadow-sm">
+                            <div class="strategy-mode-header mode2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="m-0 fw-bold text-warning-emphasis">
+                                        <i class="fa-solid fa-bolt me-1 text-warning"></i>【模式二】超高戰力平滑派駐
+                                    </h6>
+                                    <span id="mode2Badge" class="badge bg-warning text-dark">待運算</span>
+                                </div>
+                                <div class="fs-8 text-muted" style="line-height: 1.35;">
+                                    💡
+                                    <b>邏輯特徵</b>：高戰力角色儘量與中低戰力角色搭配提早出場，避免低戰力角色過早耗盡，導致後期全由高戰力出場而出現嚴重溢出的浪費問題。
+                                </div>
+                            </div>
+                            <div class="p-2 flex-grow-1" id="mode2ResultContainer"
+                                style="max-height: 580px; overflow-y: auto;">
+                                <div class="text-center text-muted py-5 fs-7">
+                                    <i class="fa-solid fa-chart-bar fa-2x mb-2 d-block text-secondary"></i>
+                                    尚未執行運算，請點擊右上角「🚀 開始最佳化運算」。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 57 位角色圖鑑 浮動抽屜選單 (Bottom Sheet Drawer) -->
+    <div id="catalogDrawerBackdrop" class="catalog-drawer-backdrop d-none" onclick="closeCatalogDrawer()"></div>
+    <div id="catalogDrawer" class="catalog-drawer d-none">
+        <div class="catalog-drawer-header d-flex justify-content-between align-items-center p-3 border-bottom flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h6 class="m-0 fw-bold text-dark"><i class="fa-solid fa-users text-success me-2"></i>選取登場同學 (57 位圖鑑看板)
+                </h6>
+                <div class="catalog-tabs-wrapper ms-2">
+                    <button class="catalog-tab-btn active" onclick="switchCatalogTab('all')">全部 57</button>
+                    <button class="catalog-tab-btn" onclick="switchCatalogTab('wenzu')">📘 文組 31</button>
+                    <button class="catalog-tab-btn" onclick="switchCatalogTab('lizu')">🧪 理組 26</button>
+                </div>
+
+                <div class="vr mx-1 opacity-25" style="height: 20px;"></div>
+
+                <!-- 快速全選/反選按鈕區 (支援疊加為全選全部) -->
+                <div class="d-flex align-items-center gap-1">
+                    <button id="btnSelectAllWenzu" class="catalog-action-btn btn-select-wenzu" onclick="toggleSelectAllGroup('文組')" title="點擊全選或取消所有文組同學">
+                        <i class="fa-solid fa-square-check"></i>全選文組 (31)
+                    </button>
+                    <button id="btnSelectAllLizu" class="catalog-action-btn btn-select-lizu" onclick="toggleSelectAllGroup('理組')" title="點擊全選或取消所有理組同學">
+                        <i class="fa-solid fa-square-check"></i>全選理組 (26)
+                    </button>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="text" id="charSearchInput" class="form-control form-control-sm" style="width: 140px;"
+                    placeholder="🔍 搜尋姓名..." oninput="filterCharBadges()">
+                <button class="btn btn-primary btn-sm fw-bold px-3 py-1" onclick="closeCatalogDrawer()">
+                    <i class="fa-solid fa-check me-1"></i>完成
+                </button>
+            </div>
+        </div>
+        <div class="catalog-drawer-body p-3">
+            <div id="catalogBadgesContainer" class="d-flex flex-wrap align-items-center gap-1">
+                <!-- 動態渲染 57 位色彩標籤 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 登場角色集體微調 Modal (Batch Adjust Modal: 成績 / 次數) -->
+    <div class="modal fade" id="batchAdjustModal" tabindex="-1" aria-labelledby="batchAdjustModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+            <div class="modal-content shadow-lg border-0" style="border-radius: 14px;">
+                <div class="modal-header py-2 px-3 bg-primary text-white"
+                    style="border-top-left-radius: 14px; border-top-right-radius: 14px;">
+                    <h6 class="modal-title fw-bold" id="batchAdjustModalLabel">
+                        <i class="fa-solid fa-wand-magic-sparkles me-2"></i>登場角色集體微調
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <!-- 步驟 1: 選擇微調項目 (成績 / 次數) -->
+                    <div class="mb-3">
+                        <label class="form-label fs-7 fw-bold text-secondary mb-1">
+                            <i class="fa-solid fa-sliders me-1"></i>1. 選擇微調項目：
+                        </label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="batchTarget" id="btScore" value="score" checked
+                                onchange="handleBatchTargetChange()">
+                            <label class="btn btn-outline-primary btn-sm fw-bold" for="btScore">🎯 學科成績 (戰力)</label>
+
+                            <input type="radio" class="btn-check" name="batchTarget" id="btCount" value="count"
+                                onchange="handleBatchTargetChange()">
+                            <label class="btn btn-outline-success btn-sm fw-bold" for="btCount">🔢 登場次數</label>
+                        </div>
+                    </div>
+
+                    <!-- 步驟 2: 組別篩選 -->
+                    <div class="mb-3">
+                        <label class="form-label fs-7 fw-bold text-secondary mb-1">
+                            <i class="fa-solid fa-layer-group me-1"></i>2. 篩選登場組別範圍：
+                        </label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="batchGroup" id="bgAll" value="all" checked
+                                onchange="updateBatchPreview()">
+                            <label class="btn btn-outline-secondary btn-sm" for="bgAll">全部</label>
+
+                            <input type="radio" class="btn-check" name="batchGroup" id="bgWenzu" value="文組"
+                                onchange="updateBatchPreview()">
+                            <label class="btn btn-outline-warning btn-sm" for="bgWenzu">📘 文組</label>
+
+                            <input type="radio" class="btn-check" name="batchGroup" id="bgLizu" value="理組"
+                                onchange="updateBatchPreview()">
+                            <label class="btn btn-outline-info btn-sm" for="bgLizu">🧪 理組</label>
+                        </div>
+                    </div>
+
+                    <!-- 步驟 3: 性別篩選 -->
+                    <div class="mb-3">
+                        <label class="form-label fs-7 fw-bold text-secondary mb-1">
+                            <i class="fa-solid fa-venus-mars me-1"></i>3. 篩選性別範圍：
+                        </label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="batchGender" id="bgGenderAll" value="all"
+                                checked onchange="updateBatchPreview()">
+                            <label class="btn btn-outline-secondary btn-sm" for="bgGenderAll">全部</label>
+
+                            <input type="radio" class="btn-check" name="batchGender" id="bgGenderM" value="男"
+                                onchange="updateBatchPreview()">
+                            <label class="btn btn-outline-primary btn-sm" for="bgGenderM">♂ 男生</label>
+
+                            <input type="radio" class="btn-check" name="batchGender" id="bgGenderF" value="女"
+                                onchange="updateBatchPreview()">
+                            <label class="btn btn-outline-danger btn-sm" for="bgGenderF">♀ 女生</label>
+                        </div>
+                    </div>
+
+                    <!-- 步驟 4: 運算模式與數值輸入 (+ / -) -->
+                    <div class="mb-2">
+                        <label class="form-label fs-7 fw-bold text-secondary mb-1" id="batchValueLabel">
+                            <i class="fa-solid fa-calculator me-1"></i>4. 設定增減數值：
+                        </label>
+                        <div class="input-group">
+                            <button class="btn btn-outline-primary dropdown-toggle fw-bold fs-6" type="button"
+                                data-bs-toggle="dropdown" id="batchOpBtn" style="min-width: 65px;">
+                                ＋
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item fw-bold" href="javascript:void(0)"
+                                        onclick="setBatchOp('+')">＋ 增加</a></li>
+                                <li><a class="dropdown-item fw-bold" href="javascript:void(0)"
+                                        onclick="setBatchOp('-')">－ 減少</a></li>
+                            </ul>
+                            <input type="number" id="batchValueInput" class="form-control text-center fs-6 fw-bold"
+                                placeholder="請輸入成績調整值 (例如 500)" min="0" step="1">
+                        </div>
+                    </div>
+
+                    <div id="batchMatchPreview" class="fs-8 text-muted mt-2 text-end">
+                        預估符合登場對象：<span class="fw-bold text-primary" id="batchMatchCount">0</span> 人
+                    </div>
+                </div>
+                <div class="modal-footer py-2 px-3 bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary btn-sm fw-bold px-3" onclick="applyBatchAdjustment()">
+                        <i class="fa-solid fa-check me-1"></i>確定套用
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 頁尾與社群分享標示 -->
+    <footer class="app-footer text-center">
+        <div class="container">
+            <p class="mb-1">
+                《我當校長超勇的-古鎮居民樓》最低溢出交流策略試算工具 ｜ 玩家社群免費交流分享工具
+            </p>
+            <p class="mb-0 fs-8 text-muted">
+                本工具純屬玩家社群試算交流使用 ｜ <a href="https://github.com/koeissr/SuperPrincipal" target="_blank"><i
+                        class="fa-brands fa-github me-1"></i>GitHub Repository</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- JS 套件與模組化腳本 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="js/config.js?v=2.0.2"></script>
+    <script src="js/core.js?v=2.0.2"></script>
+    <script src="js/app.js?v=2.0.2"></script>
+</body>
+
+</html>
