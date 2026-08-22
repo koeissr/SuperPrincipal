@@ -724,88 +724,9 @@ function startOptimizationFlow() {
         }
     }
 
-    // 透過 requestAnimationFrame 先行交出主線程，確保磨砂遮罩 0ms 瞬間顯示
+    // 透過 requestAnimationFrame 先行交出主線程，確保磨砂遮罩 0ms 瞬間顯示後直接執行極速運算
     requestAnimationFrame(() => {
-        setTimeout(() => {
-            const isFileProtocol = (window.location.protocol === "file:");
-
-            if (isFileProtocol || typeof window.Worker === "undefined" || !window.Worker) {
-                executeMainThreadDirectly();
-                return;
-            }
-
-            if (activeWorker) {
-                activeWorker.terminate();
-                activeWorker = null;
-            }
-
-            let isCompleted = false;
-            const timeoutWatchdog = setTimeout(() => {
-                if (!isCompleted) {
-                    console.warn("⚠️ Worker 響應超時，自動切換為本地主線程秒級運算");
-                    if (activeWorker) {
-                        activeWorker.terminate();
-                        activeWorker = null;
-                    }
-                    executeMainThreadDirectly();
-                }
-            }, 2000);
-
-            try {
-                const workerScriptPath = "js/worker.js?v=" + Date.now();
-                activeWorker = new Worker(workerScriptPath);
-
-                activeWorker.onmessage = function (e) {
-                    const data = e.data;
-                    if (data.type === 'mode1_done') {
-                        // 模式一完成 (左欄：早期完美 0 溢出優先)
-                        mode1SolutionGlobal = data.solution;
-                        renderMode1Results(data.solution, bosses);
-                        document.getElementById("mode1Badge").className = "badge bg-primary";
-                        document.getElementById("mode1Badge").textContent = "完成";
-                        document.getElementById("mode2Badge").className = "badge bg-warning text-dark";
-                        document.getElementById("mode2Badge").textContent = "計算中...";
-                        if (progressBar) progressBar.style.width = "50%";
-                    } else if (data.type === 'mode2_done') {
-                        // 模式二完成 (右欄：超高戰力平滑派駐)
-                        isCompleted = true;
-                        clearTimeout(timeoutWatchdog);
-
-                        mode2SolutionGlobal = data.solution;
-                        renderMode2Results(data.solution, bosses);
-                        document.getElementById("mode2Badge").className = "badge bg-success";
-                        document.getElementById("mode2Badge").textContent = "完成";
-                        if (progressBar) progressBar.style.width = "100%";
-                        clearDataDirty();
-
-                        setTimeout(() => {
-                            if (overlay) overlay.classList.add("d-none");
-                        }, 250);
-
-                        activeWorker.terminate();
-                        activeWorker = null;
-                    } else if (data.type === 'error') {
-                        throw new Error(data.error);
-                    }
-                };
-
-                activeWorker.onerror = function (err) {
-                    console.warn("Web Worker 載入受阻，自動切換為主線程運算:", err);
-                    isCompleted = true;
-                    clearTimeout(timeoutWatchdog);
-                    if (activeWorker) activeWorker.terminate();
-                    activeWorker = null;
-                    executeMainThreadDirectly();
-                };
-
-                activeWorker.postMessage({ action: 'start', characters, bosses, totalScore });
-            } catch (err) {
-                console.warn("Worker 啟動失敗，切換為主線程運算:", err);
-                isCompleted = true;
-                clearTimeout(timeoutWatchdog);
-                executeMainThreadDirectly();
-            }
-        }, 30);
+        setTimeout(executeMainThreadDirectly, 30);
     });
 }
 
