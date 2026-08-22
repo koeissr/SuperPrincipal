@@ -16,6 +16,8 @@ body {
 }
 
 .header-banner {
+    position: relative;
+    z-index: 1000;
     background: var(--primary-gradient);
     color: white;
     padding: 0.75rem 0;
@@ -23,12 +25,20 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.header-banner:has(.help-popover-wrapper:hover) {
+    z-index: 1200;
+}
+
 /* ℹ️ 標題後操作說明浮動視窗 (Help Popover) */
 .help-popover-wrapper {
     position: relative;
     display: inline-flex;
     align-items: center;
-    z-index: 1050;
+    z-index: 10;
+}
+
+.help-popover-wrapper:hover {
+    z-index: 2000;
 }
 
 .help-badge {
@@ -54,6 +64,31 @@ body {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
+/* 💡 設定提示 Badge (白底/淺色頂部參數列專用) */
+.config-hint-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #0284c7;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.08);
+}
+
+.help-popover-wrapper:hover .config-hint-badge {
+    background: #e0f2fe;
+    color: #0369a1;
+    border-color: #7dd3fc;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(2, 132, 199, 0.18);
+}
+
 .help-popover-card {
     position: absolute;
     top: calc(100% + 8px);
@@ -67,12 +102,39 @@ body {
     opacity: 0;
     visibility: hidden;
     transform: translateY(6px);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1) 0.35s,
+                transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) 0.35s,
+                visibility 0.25s cubic-bezier(0.4, 0, 0.2, 1) 0.35s;
     pointer-events: none;
-    overflow: hidden;
+    overflow: visible;
+}
+
+/* 隱形感應安全橋樑：填補按鈕與卡片之間的 8px 空隙，防止滑鼠移動時斷開 */
+.help-popover-card::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    left: 0;
+    width: 100%;
+    height: 14px;
+    background: transparent;
 }
 
 .help-popover-wrapper:hover .help-popover-card {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1) 0s,
+                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) 0s,
+                visibility 0.2s cubic-bezier(0.4, 0, 0.2, 1) 0s;
+}
+
+.help-popover-wrapper.is-open {
+    z-index: 2000;
+}
+
+.help-popover-wrapper.is-open .help-popover-card {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
@@ -85,7 +147,29 @@ body {
     font-size: 0.88rem;
     font-weight: 700;
     padding: 10px 14px;
+    border-top-left-radius: 11px;
+    border-top-right-radius: 11px;
     border-bottom: 1px solid #dce4ec;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-close-popover {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.btn-close-popover:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .help-popover-body {
@@ -94,6 +178,36 @@ body {
     line-height: 1.5;
     max-height: 380px;
     overflow-y: auto;
+    border-bottom-left-radius: 11px;
+    border-bottom-right-radius: 11px;
+}
+
+/* 🏷️ 1-2-3 視覺步驟標籤 (黃底紅字高辨識度風格) */
+.step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+    font-size: 0.74rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    border-radius: 5px;
+    margin-right: 6px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #fff9db 0%, #ffd43b 100%);
+    color: #c92a2a;
+    border: 1px solid #fab005;
+    box-shadow: 0 2px 6px rgba(201, 42, 42, 0.18);
+    vertical-align: 1px;
+    white-space: nowrap;
+}
+
+.step-badge.step-1,
+.step-badge.step-2,
+.step-badge.step-3 {
+    background: linear-gradient(135deg, #fff9db 0%, #ffd43b 100%);
+    color: #c92a2a;
+    border: 1px solid #fab005;
 }
 
 .help-item {
@@ -184,6 +298,83 @@ body {
     100% {
         box-shadow: 0 0 0 0 rgba(96, 165, 250, 0), 0 4px 14px rgba(29, 78, 216, 0.45);
         transform: scale(1);
+    }
+}
+
+/* 🔥 數值變更待重新運算時的高能警示狀態 (Dirty / Needs-Recalc State) */
+.btn-rect-launch.needs-recalc {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%) !important;
+    border-color: #fef08a !important;
+    color: #ffffff !important;
+    animation: alertRecalcCTA 1.4s infinite ease-in-out !important;
+    box-shadow: 0 4px 16px rgba(217, 119, 6, 0.6) !important;
+}
+
+.btn-rect-launch.needs-recalc:hover {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%) !important;
+    box-shadow: 0 6px 22px rgba(217, 119, 6, 0.8) !important;
+}
+
+@keyframes alertRecalcCTA {
+    0% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7), 0 4px 14px rgba(217, 119, 6, 0.5);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(245, 158, 11, 0), 0 6px 20px rgba(217, 119, 6, 0.7);
+        transform: scale(1.03);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0), 0 4px 14px rgba(217, 119, 6, 0.5);
+        transform: scale(1);
+    }
+}
+
+.badge-recalc-hint {
+    display: none;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 7px;
+    border-radius: 12px;
+    margin-left: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+}
+
+.btn-rect-launch.needs-recalc .badge-recalc-hint {
+    display: inline-flex;
+}
+
+.btn-rect-launch.needs-recalc .badge-recalc-hint i {
+    font-size: 0.75rem;
+    margin-right: 4px;
+}
+
+.btn-rect-launch.needs-recalc .launch-btn-text {
+    display: none;
+}
+
+.btn-rect-launch .launch-btn-recalc-text {
+    display: none;
+}
+
+.btn-rect-launch.needs-recalc .launch-btn-recalc-text {
+    display: inline;
+}
+
+@media (max-width: 576px) {
+    .help-popover-card {
+        width: calc(100vw - 32px) !important;
+        max-width: 380px !important;
+        position: fixed !important;
+        top: 65px !important;
+        left: 16px !important;
+        right: 16px !important;
+        transform: none !important;
+        max-height: 80vh !important;
+        z-index: 2500 !important;
     }
 }
 
@@ -305,6 +496,8 @@ body {
 
 /* 頂部全寬度橫向設定與快捷列 (Top Config Bar) */
 .top-config-bar {
+    position: relative;
+    z-index: 100;
     background: #ffffff;
     border: 1px solid #dce4ec;
     border-radius: 12px;
@@ -315,6 +508,10 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+}
+
+.top-config-bar:has(.help-popover-wrapper:hover) {
+    z-index: 1050;
 }
 
 .top-config-group {

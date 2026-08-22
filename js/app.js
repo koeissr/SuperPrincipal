@@ -10,11 +10,74 @@ let mode1SolutionGlobal = null;
 let mode2SolutionGlobal = null;
 let activeWorker = null;
 let currentCatalogTab = 'all';
+let isDataDirty = false;
+
+// ==========================================
+// 數據變更感應與待重新運算狀態 (Dirty State Management)
+// ==========================================
+function markDataDirty() {
+    isDataDirty = true;
+    const launchBtn = document.getElementById("mainLaunchBtn");
+    if (launchBtn) {
+        launchBtn.classList.add("needs-recalc");
+    }
+    const b1 = document.getElementById("mode1Badge");
+    const b2 = document.getElementById("mode2Badge");
+    if (b1 && b1.textContent === "完成") {
+        b1.className = "badge bg-warning text-dark";
+        b1.textContent = "待重新運算";
+    }
+    if (b2 && b2.textContent === "完成") {
+        b2.className = "badge bg-warning text-dark";
+        b2.textContent = "待重新運算";
+    }
+}
+
+function clearDataDirty() {
+    isDataDirty = false;
+    const launchBtn = document.getElementById("mainLaunchBtn");
+    if (launchBtn) {
+        launchBtn.classList.remove("needs-recalc");
+    }
+}
+
+// ==========================================
+// 操作說明與設定提示 點擊/觸控與外部點擊管理 (Popover Interaction)
+// ==========================================
+function toggleHelpPopover(id, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const target = document.getElementById(id);
+    if (!target) return;
+    const isOpen = target.classList.contains("is-open");
+    closeAllHelpPopovers();
+    if (!isOpen) {
+        target.classList.add("is-open");
+    }
+}
+
+function closeHelpPopover(id, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const target = document.getElementById(id);
+    if (target) {
+        target.classList.remove("is-open");
+    }
+}
+
+function closeAllHelpPopovers() {
+    document.querySelectorAll(".help-popover-wrapper").forEach(el => {
+        el.classList.remove("is-open");
+    });
+}
 
 // 初始化 (預設自動載入 Demo 登場角色與參數，零配置開箱即用)
 async function initApp() {
     initIntimacyOptions();
     initSortable();
+    initEventListeners();
     await autoLoadInitialDemoData();
 
     // 載入 Demo 成功後延遲 1 秒，自動啟動「開始最佳化運算」展示極速算力與成果
@@ -24,6 +87,31 @@ async function initApp() {
             startOptimizationFlow();
         }
     }, 1000);
+}
+
+function initEventListeners() {
+    const baseHpInput = document.getElementById("bossBaseHp");
+    const incHpInput = document.getElementById("bossIncHp");
+    if (baseHpInput) baseHpInput.addEventListener("input", markDataDirty);
+    if (incHpInput) incHpInput.addEventListener("input", markDataDirty);
+
+    // 外部點擊自動關閉所有釘住的浮動卡片
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest(".help-popover-wrapper")) {
+            closeAllHelpPopovers();
+        }
+    });
+
+    // 鍵盤監聽: ESC關閉浮動視窗、Ctrl+Enter (Cmd+Enter) 極速啟動運算
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+            closeAllHelpPopovers();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            e.preventDefault();
+            startOptimizationFlow();
+        }
+    });
 }
 
 if (document.readyState === "loading") {
@@ -56,6 +144,7 @@ function handleIntimacyChange() {
     } else {
         alertBox.classList.add("d-none");
     }
+    markDataDirty();
 }
 
 // 圖鑑頁籤切換
@@ -91,14 +180,14 @@ function renderCharPool() {
 
     if (btnWenzu) {
         btnWenzu.classList.toggle("all-selected", isAllWenzuSelected);
-        btnWenzu.innerHTML = isAllWenzuSelected 
-            ? '<i class="fa-solid fa-square-check"></i> 取消全選文組' 
+        btnWenzu.innerHTML = isAllWenzuSelected
+            ? '<i class="fa-solid fa-square-check"></i> 取消全選文組'
             : '<i class="fa-regular fa-square-check"></i> 全選文組 (31)';
     }
     if (btnLizu) {
         btnLizu.classList.toggle("all-selected", isAllLizuSelected);
-        btnLizu.innerHTML = isAllLizuSelected 
-            ? '<i class="fa-solid fa-square-check"></i> 取消全選理組' 
+        btnLizu.innerHTML = isAllLizuSelected
+            ? '<i class="fa-solid fa-square-check"></i> 取消全選理組'
             : '<i class="fa-regular fa-square-check"></i> 全選理組 (26)';
     }
 
@@ -127,9 +216,7 @@ function renderCharPool() {
     });
 
     filterCharBadges();
-}
-
-// 快速全選 / 取消全選指定組別 (支援疊加全選全部)
+}// 快速全選 / 取消全選指定組別 (支援疊加全選全部)
 function toggleSelectAllGroup(groupName) {
     if (typeof ALL_CHARACTERS === "undefined") return;
     const targetChars = ALL_CHARACTERS.filter(c => c.group === groupName);
@@ -156,6 +243,7 @@ function toggleSelectAllGroup(groupName) {
 
     renderCharPool();
     renderSelectedTable();
+    markDataDirty();
 }
 
 // 關鍵字搜尋過濾
@@ -203,6 +291,7 @@ function toggleCharSelected(char) {
     }
     renderCharPool();
     renderSelectedTable();
+    markDataDirty();
 }
 
 // 學科成績 (傷害) 單擊 1 點與長按連續加速機制 (10 點/100 點)
@@ -263,6 +352,7 @@ function renderSelectedTable() {
                         value="${char.score}" 
                         onfocus="this.select()"
                         onkeydown="handleScoreInputKeydown(event, ${idx})"
+                        oninput="updateCharScore(${idx}, this.value)"
                         onchange="updateCharScore(${idx}, this.value)">
                     <button class="btn btn-outline-secondary btn-inc-dec" tabindex="-1"
                         onmousedown="startScoreHold(${idx}, 1)" onmouseup="stopScoreHold()" onmouseleave="stopScoreHold()" 
@@ -272,7 +362,7 @@ function renderSelectedTable() {
             <td class="text-center">
                 <div class="input-group input-group-sm justify-content-center">
                     <button class="btn btn-outline-secondary btn-inc-dec" tabindex="-1" onclick="adjustCharCount(${idx}, -1)">-</button>
-                    <input type="number" id="count_input_${idx}" class="form-control num-input-count text-center" tabindex="-1" min="0" value="${char.count}" onchange="updateCharCount(${idx}, this.value)">
+                    <input type="number" id="count_input_${idx}" class="form-control num-input-count text-center" tabindex="-1" min="0" value="${char.count}" oninput="updateCharCount(${idx}, this.value)" onchange="updateCharCount(${idx}, this.value)">
                     <button class="btn btn-outline-secondary btn-inc-dec" tabindex="-1" onclick="adjustCharCount(${idx}, 1)">+</button>
                 </div>
             </td>
@@ -290,8 +380,8 @@ function handleScoreInputKeydown(event, idx) {
     if (event.key === "Tab") {
         event.preventDefault();
         if (total <= 0) return;
-        const nextIdx = event.shiftKey 
-            ? (idx - 1 + total) % total 
+        const nextIdx = event.shiftKey
+            ? (idx - 1 + total) % total
             : (idx + 1) % total;
         const nextInput = document.getElementById(`score_input_${nextIdx}`);
         if (nextInput) {
@@ -323,6 +413,7 @@ function removeCharFromSelected(index) {
     selectedCharacters.splice(index, 1);
     renderCharPool();
     renderSelectedTable();
+    markDataDirty();
 }
 
 // Sortable 拖曳初始化
@@ -336,6 +427,7 @@ function initSortable() {
             const movedItem = selectedCharacters.splice(evt.oldIndex, 1)[0];
             selectedCharacters.splice(evt.newIndex, 0, movedItem);
             renderSelectedTable();
+            markDataDirty();
         }
     });
 }
@@ -347,6 +439,7 @@ function adjustValue(elementId, delta) {
     let val = parseInt(input.value) || 0;
     val = Math.max(0, val + delta);
     input.value = val;
+    markDataDirty();
 }
 
 function adjustCharScore(idx, delta) {
@@ -359,11 +452,13 @@ function adjustCharScore(idx, delta) {
     } else {
         renderSelectedTable();
     }
+    markDataDirty();
 }
 
 function updateCharScore(idx, val) {
     if (!selectedCharacters[idx]) return;
     selectedCharacters[idx].score = Math.max(0, parseInt(val) || 0);
+    markDataDirty();
 }
 
 function adjustCharCount(idx, delta) {
@@ -375,11 +470,13 @@ function adjustCharCount(idx, delta) {
     } else {
         renderSelectedTable();
     }
+    markDataDirty();
 }
 
 function updateCharCount(idx, val) {
     if (!selectedCharacters[idx]) return;
     selectedCharacters[idx].count = Math.max(0, parseInt(val) || 0);
+    markDataDirty();
 }
 
 // ==========================================
@@ -416,7 +513,7 @@ function handleBatchTargetChange() {
     const valInput = document.getElementById("batchValueInput");
     const valLabel = document.getElementById("batchValueLabel");
     if (!valInput) return;
-    
+
     if (target === 'count') {
         valInput.placeholder = "請輸入次數調整值 (例如 1)";
         valInput.step = "1";
@@ -484,7 +581,7 @@ function applyBatchAdjustment() {
         const info = (typeof ALL_CHARACTERS !== "undefined")
             ? ALL_CHARACTERS.find(c => c.name === char.name)
             : null;
-        
+
         let matchGroup = true;
         let matchGender = true;
         if (info) {
@@ -511,6 +608,7 @@ function applyBatchAdjustment() {
     });
 
     renderSelectedTable();
+    markDataDirty();
 
     if (batchModalInstance) {
         batchModalInstance.hide();
@@ -612,6 +710,7 @@ function startOptimizationFlow() {
                     document.getElementById("mode2Badge").className = "badge bg-success";
                     document.getElementById("mode2Badge").textContent = "完成";
                     if (progressBar) progressBar.style.width = "100%";
+                    clearDataDirty();
 
                     setTimeout(() => {
                         if (overlay) overlay.classList.add("d-none");
@@ -677,6 +776,7 @@ function startOptimizationFlow() {
                         document.getElementById("mode2Badge").className = "badge bg-success";
                         document.getElementById("mode2Badge").textContent = "完成";
                         if (progressBar) progressBar.style.width = "100%";
+                        clearDataDirty();
 
                         setTimeout(() => {
                             if (overlay) overlay.classList.add("d-none");
@@ -748,13 +848,13 @@ function renderMode1Results(solution, bosses) {
             <div class="round-card ${isCleared ? 'cleared' : 'failed'}">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="badge ${isCleared ? 'bg-primary' : 'bg-danger'}">${roundSol.round}</span>
-                    <span class="fs-7 fw-bold">BOSS: ${roundSol.bossHp.toLocaleString()}</span>
+                    <span class="fs-7 fw-bold">BOSS血量: ${roundSol.bossHp.toLocaleString()}</span>
                 </div>
                 <div class="mb-1">
                     ${roundSol.members.map(m => `<span class="char-tag-pill">${m.name} (${m.score.toLocaleString()})</span>`).join('')}
                 </div>
                 <div class="d-flex justify-content-between fs-8 text-muted border-top pt-1 mt-1">
-                    <span>輸出: <b>${roundSol.teamDmg.toLocaleString()}</b></span>
+                    <span>戰力總輸出值: <b>${roundSol.teamDmg.toLocaleString()}</b></span>
                     <span class="${isCleared ? 'text-success' : 'text-danger'} fw-bold">
                         ${isCleared ? `溢出: +${Math.round(roundSol.overkill).toLocaleString()}` : `殘餘: ${Math.abs(roundSol.overkill).toLocaleString()}`}
                     </span>
@@ -801,13 +901,13 @@ function renderMode2Results(solution, bosses) {
             <div class="round-card ${isCleared ? 'cleared' : 'failed'}">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="badge ${isCleared ? 'bg-success' : 'bg-danger'}">${roundSol.round}</span>
-                    <span class="fs-7 fw-bold">BOSS: ${roundSol.bossHp.toLocaleString()}</span>
+                    <span class="fs-7 fw-bold">BOSS血量: ${roundSol.bossHp.toLocaleString()}</span>
                 </div>
                 <div class="mb-1">
                     ${roundSol.members.map(m => `<span class="char-tag-pill">${m.name} (${m.score.toLocaleString()})</span>`).join('')}
                 </div>
                 <div class="d-flex justify-content-between fs-8 text-muted border-top pt-1 mt-1">
-                    <span>輸出: <b>${roundSol.teamDmg.toLocaleString()}</b></span>
+                    <span>戰力總輸出值: <b>${roundSol.teamDmg.toLocaleString()}</b></span>
                     <span class="${isCleared ? 'text-success' : 'text-danger'} fw-bold">
                         ${isCleared ? `溢出: +${Math.round(roundSol.overkill).toLocaleString()}` : `殘餘: ${Math.abs(roundSol.overkill).toLocaleString()}`}
                     </span>
@@ -902,7 +1002,7 @@ function exportCharExcelTemplate() {
     const incHpVal = incHpInput && incHpInput.value !== "" ? Number(incHpInput.value) : "";
 
     const activeRows = selectedCharacters.map(c => [c.name, c.score, c.count]);
-    
+
     const lizuMale = ALL_CHARACTERS.filter(c => c.group === "理組" && c.gender === "男").map(c => c.name);
     const lizuFemale = ALL_CHARACTERS.filter(c => c.group === "理組" && c.gender === "女").map(c => c.name);
     const wenzuMale = ALL_CHARACTERS.filter(c => c.group === "文組" && c.gender === "男").map(c => c.name);
@@ -1119,17 +1219,18 @@ function resetSelectedCharacters() {
 
     renderCharPool();
     renderSelectedTable();
+    clearDataDirty();
 
     const overviewBox = document.getElementById("summaryOverviewBox");
     if (overviewBox) overviewBox.classList.add("d-none");
 
     const m1Container = document.getElementById("mode1ResultContainer");
     if (m1Container) {
-        m1Container.innerHTML = '<div class="text-center text-muted py-5 fs-7"><i class="fa-solid fa-chart-line fa-2x mb-2 d-block text-secondary"></i>尚未執行運算，請點擊左下角「🚀 開始最佳化運算」。</div>';
+        m1Container.innerHTML = '<div class="text-center text-muted py-5 fs-7"><i class="fa-solid fa-chart-line fa-2x mb-2 d-block text-secondary"></i>尚未執行運算，請點擊右上角「🚀 開始最佳化運算」(或按 Ctrl+Enter)。</div>';
     }
     const m2Container = document.getElementById("mode2ResultContainer");
     if (m2Container) {
-        m2Container.innerHTML = '<div class="text-center text-muted py-5 fs-7"><i class="fa-solid fa-chart-bar fa-2x mb-2 d-block text-secondary"></i>尚未執行運算，請點擊左下角「🚀 開始最佳化運算」。</div>';
+        m2Container.innerHTML = '<div class="text-center text-muted py-5 fs-7"><i class="fa-solid fa-chart-bar fa-2x mb-2 d-block text-secondary"></i>尚未執行運算，請點擊右上角「🚀 開始最佳化運算」(或按 Ctrl+Enter)。</div>';
     }
 
     document.getElementById("mode1Badge").className = "badge bg-primary";
@@ -1153,6 +1254,7 @@ function importCharExcel(event) {
                 selectedCharacters = newSelected;
                 renderCharPool();
                 renderSelectedTable();
+                markDataDirty();
                 alert("✅ 成功匯入 " + newSelected.length + " 位登場角色與居民參數！");
             } else {
                 alert("⚠️ 檔案中未發現有效的登場角色數據（請確認 Col A 角色姓名與 Col B 成績 > 0）。");
